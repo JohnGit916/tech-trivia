@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Trivia</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="start-screen">
+            <h1>Tech Trivia</h1>
+            <button id="start-btn">Start Trivia</button>
+        </div>
+
+        <div id="quiz-section" class="hidden">
+            <div class="question-container">
+                <p id="question-text"></p>
+                <div id="options-container"></div>
+            </div>
+
+            <div class="info-container">
+                <p>Score: <span id="score">0</span></p>
+                <p>Time Left: <span id="timer">60</span>s</p>
+            </div>
+        </div>
+
+        <div id="result-section" class="hidden">
+            <h2>Game Over!</h2>
+            <p>Your Final Score: <span id="final-score"></span></p>
+            <button id="restart-btn">Restart Trivia</button>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
