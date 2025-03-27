@@ -16,13 +16,18 @@ let timer;
 async function fetchQuestions() {
     try {
         const response = await fetch('https://triviabackend-kxd1.onrender.com/api/questions');
-        if (!response.ok) throw new Error('Failed to fetch questions.');
+        if (!response.ok) {
+            console.error(`Error fetching questions: ${response.status} - ${response.statusText}`);
+            alert('Error fetching trivia data. Please try again.');
+            return;
+        }
         questions = await response.json();
     } catch (error) {
-        console.error('Error fetching questions:', error);
-        alert('Failed to load questions. Please try again later.');
+        console.error('Network error:', error);
+        alert('Network error. Please check your connection or try again later.');
     }
 }
+
 
 async function startTrivia() {
     await fetchQuestions();
