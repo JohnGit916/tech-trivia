@@ -14,13 +14,20 @@ let score = 0;
 let timer;
 
 async function fetchQuestions() {
-    const response = await fetch('https://cors-anywhere.herokuapp.com/https://triviabackend-kxd1.onrender.com/api/questions');
-    questions = await response.json();
+    try {
+        const response = await fetch('https://triviabackend-kxd1.onrender.com/api/questions');
+        if (!response.ok) throw new Error('Failed to fetch questions.');
+        questions = await response.json();
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        alert('Failed to load questions. Please try again later.');
+    }
 }
 
 async function startTrivia() {
-    
     await fetchQuestions();
+    if (!questions.length) return; // Prevent starting trivia if no questions were fetched
+
     score = 0;
     currentQuestionIndex = 0;
     document.getElementById('score').textContent = score;
@@ -47,12 +54,12 @@ function startTimer() {
             endTrivia();
         }
     }, 1000);
-
-   
 }
 
 function displayQuestion() {
     const questionData = questions[currentQuestionIndex];
+    if (!questionData) return endTrivia(); // Safety check
+
     document.getElementById('question-text').textContent = questionData.question;
 
     const optionsContainer = document.getElementById('options-container');
@@ -89,11 +96,16 @@ function checkAnswer(selected, correctAnswer) {
 async function endTrivia() {
     clearInterval(timer);
 
-    await fetch('https://cors-anywhere.herokuapp.com/https://triviabackend-kxd1.onrender.com/api/scores'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score: score, date: new Date().toLocaleString() })
-    });
+    try {
+        await fetch('https://triviabackend-kxd1.onrender.com/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ score: score, date: new Date().toLocaleString() })
+        });
+    } catch (error) {
+        console.error('Error posting score:', error);
+        alert('Failed to save your score. Please try again later.');
+    }
 
     document.getElementById('quiz-section').classList.add('hidden');
     document.getElementById('result-section').classList.remove('hidden');
