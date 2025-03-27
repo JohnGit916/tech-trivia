@@ -14,11 +14,12 @@ let score = 0;
 let timer;
 
 async function fetchQuestions() {
-    const response = await fetch('http://localhost:3000/questions');
+    const response = await fetch('https://triviabackend-kxd1.onrender.com/api/questions');
     questions = await response.json();
 }
 
 async function startTrivia() {
+    console.log("startTrivia")
     await fetchQuestions();
     score = 0;
     currentQuestionIndex = 0;
@@ -88,7 +89,7 @@ function checkAnswer(selected, correctAnswer) {
 async function endTrivia() {
     clearInterval(timer);
 
-    await fetch('http://localhost:3000/scores', {
+    await fetch('https://triviabackend-kxd1.onrender.com/api/scores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ score: score, date: new Date().toLocaleString() })
