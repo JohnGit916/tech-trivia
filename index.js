@@ -1,17 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
-    const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
+    const submitFeedbackBtn = document.getElementById('submit-feedback');
 
     if (startBtn) startBtn.addEventListener('click', startTrivia);
     if (restartBtn) restartBtn.addEventListener('click', startTrivia);
     if (submitFeedbackBtn) submitFeedbackBtn.addEventListener('click', submitFeedback);
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            startTrivia();
-        }
-    });
 
     let questions = [];
     let currentQuestionIndex = 0;
@@ -26,19 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error fetching questions:', error);
             alert('Failed to load questions. Please try again later.');
-        }
-    }
-
-    async function fetchFeedback() {
-        try {
-            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/feedback');
-            const feedbackData = await response.json();
-            const feedbackContainer = document.getElementById('feedback-container');
-            feedbackContainer.innerHTML = feedbackData.map(feedback => `
-                <p><strong>${feedback.name}:</strong> ${feedback.comment}</p>
-            `).join('');
-        } catch (error) {
-            console.error('Error fetching feedback:', error);
         }
     }
 
@@ -79,15 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!questionData) return endTrivia();
 
         document.getElementById('question-text').textContent = questionData.question;
-
         const optionsContainer = document.getElementById('options-container');
         optionsContainer.innerHTML = '';
 
         questionData.options.forEach(option => {
             const button = document.createElement('button');
             button.textContent = option;
-            button.addEventListener('mouseover', () => button.classList.add('hover-effect'));
-            button.addEventListener('mouseout', () => button.classList.remove('hover-effect'));
             button.addEventListener('click', () => checkAnswer(option, questionData.answer));
             optionsContainer.appendChild(button);
         });
@@ -110,50 +88,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function endTrivia() {
         clearInterval(timer);
-
-        try {
-            await fetch('https://triviabackend-kxd1.onrender.com/api/scores', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ score: score, date: new Date().toLocaleString() })
-            });
-        } catch (error) {
-            console.error('Error posting score:', error);
-            alert('Failed to save your score. Please try again later.');
-        }
-
         document.getElementById('quiz-section').classList.add('hidden');
         document.getElementById('result-section').classList.remove('hidden');
         document.getElementById('final-score').textContent = score;
-
-        await fetchFeedback();
+        loadLatestFeedback();
     }
 
     async function submitFeedback() {
-        const name = document.getElementById('feedback-name').value;
-        const comment = document.getElementById('feedback-comment').value;
-
-        if (!name || !comment) {
-            alert('Please fill in both name and comment.');
-            return;
-        }
+        const name = document.getElementById('user-name').value.trim();
+        const feedback = document.getElementById('user-feedback').value.trim();
+        if (!name || !feedback) return alert('Please provide your name and feedback.');
 
         try {
             await fetch('https://triviabackend-kxd1.onrender.com/api/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, comment })
+                body: JSON.stringify({ name, feedback, date: new Date().toLocaleString() })
             });
-
-            document.getElementById('feedback-name').value = '';
-            document.getElementById('feedback-comment').value = '';
-
-            await fetchFeedback();
+            alert('Thank you for your feedback!');
+            loadLatestFeedback();
         } catch (error) {
-            console.error('Error submitting feedback:', error);
+            console.error('Error posting feedback:', error);
             alert('Failed to submit feedback. Please try again later.');
         }
     }
 
-    fetchFeedback();
+    async function loadLatestFeedback() {
+        try {
+            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/feedback');
+            const feedbackList = await response.json();
+
+            const feedbackContainer = document.getElementById('feedback-list');
+            feedbackContainer.innerHTML = '';
+
+            feedbackList.slice(-5).forEach(feedback => {
+                const li = document.createElement('li');
+                li.textContent = `${feedback.name}: ${feedback.feedback}`;
+                feedbackContainer.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error fetching feedback:', error);
+        }
+    }
 });
