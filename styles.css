@@ -59,3 +59,27 @@ button:hover {
     color: #E91E63;
     font-weight: bold;
 }
+
+
+#feedback-section textarea,
+#user-name {
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+}
+
+#feedback-list {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+#feedback-list li {
+    background: #e0e0e0;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+}

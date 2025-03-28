@@ -28,6 +28,16 @@
         <div id="result-section" class="hidden">
             <h2>Game Over!</h2>
             <p>Your Final Score: <span id="final-score"></span></p>
+            <div id="feedback-section">
+                <h3>Rate the Trivia</h3>
+                <input type="text" id="user-name" placeholder="Your Name">
+                <textarea id="user-feedback" placeholder="Share your thoughts..."></textarea>
+                <button id="submit-feedback">Submit Feedback</button>
+            </div>
+            <div id="latest-feedback">
+                <h3>Latest Feedback</h3>
+                <ul id="feedback-list"></ul>
+            </div>
             <button id="restart-btn">Restart Trivia</button>
         </div>
     </div>
