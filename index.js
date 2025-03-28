@@ -1,74 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('start-btn');
-    const restartBtn = document.getElementById('restart-btn');
-    const submitFeedbackBtn = document.getElementById('submit-feedback');
+    const API_BASE_URL = 'https://triviabackend-kxd1.onrender.com';
 
-    if (startBtn) startBtn.addEventListener('click', startTrivia);
-    if (restartBtn) restartBtn.addEventListener('click', startTrivia);
-    if (submitFeedbackBtn) submitFeedbackBtn.addEventListener('click', submitFeedback);
+    const startBtn = document.getElementById('start-btn');
+    const quizSection = document.getElementById('quiz-section');
+    const startScreen = document.getElementById('start-screen');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const resultSection = document.getElementById('result-section');
+    const submitFeedbackBtn = document.getElementById('submit-feedback');
+    const feedbackList = document.getElementById('feedback-list');
 
     let questions = [];
     let currentQuestionIndex = 0;
     let score = 0;
     let timer;
+    let timeLeft = 60;
 
-    function saveQuizState() {
-        const quizState = {
-            currentQuestionIndex,
-            score,
-            remainingTime: document.getElementById('timer').textContent,
-            questions
-        };
-        localStorage.setItem('quizState', JSON.stringify(quizState));
-    }
-
-    function loadQuizState() {
-        const savedState = JSON.parse(localStorage.getItem('quizState'));
-        if (savedState) {
-            questions = savedState.questions;
-            currentQuestionIndex = savedState.currentQuestionIndex;
-            score = savedState.score;
-            document.getElementById('score').textContent = score;
-            startTimer(parseInt(savedState.remainingTime));
-            displayQuestion();
-        }
-    }
-
-    async function fetchQuestions() {
-        try {
-            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/questions');
-            if (!response.ok) throw new Error('Failed to fetch questions.');
-            questions = await response.json();
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-            alert('Failed to load questions. Please try again later.');
-        }
-    }
-
-    async function startTrivia() {
-        await fetchQuestions();
-        if (!questions.length) return;
-
-        score = 0;
-        currentQuestionIndex = 0;
-        document.getElementById('score').textContent = score;
-
-        document.getElementById('start-screen').classList.add('hidden');
-        document.getElementById('quiz-section').classList.remove('hidden');
-        document.getElementById('result-section').classList.add('hidden');
-
+    startBtn.addEventListener('click', () => {
+        startScreen.classList.add('hidden');
+        quizSection.classList.remove('hidden');
+        loadQuestions();
         startTimer();
-        displayQuestion();
-    }
+    });
 
-    function startTimer(timeLeft = 60) {
-        document.getElementById('timer').textContent = timeLeft;
-
-        clearInterval(timer);
+    function startTimer() {
+        timerDisplay.textContent = timeLeft;
         timer = setInterval(() => {
             timeLeft--;
-            document.getElementById('timer').textContent = timeLeft;
-            saveQuizState();
+            timerDisplay.textContent = timeLeft;
 
             if (timeLeft <= 0) {
                 clearInterval(timer);
@@ -77,70 +39,79 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    function displayQuestion() {
-        const questionData = questions[currentQuestionIndex];
-        if (!questionData) return endTrivia();
-
-        document.getElementById('question-text').textContent = questionData.question;
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-
-        questionData.options.forEach(option => {
-            const button = document.createElement('button');
-            button.textContent = option;
-            button.addEventListener('click', () => checkAnswer(option, questionData.answer));
-            optionsContainer.appendChild(button);
-        });
+    function loadQuestions() {
+        fetch(`${API_BASE_URL}/questions`)
+            .then(response => response.json())
+            .then(data => {
+                questions = data;
+                displayQuestion();
+            })
+            .catch(error => console.error('Error fetching questions:', error));
     }
 
-    function checkAnswer(selected, correctAnswer) {
-        if (selected === correctAnswer) {
-            score++;
-            document.getElementById('score').textContent = score;
-        }
-
-        currentQuestionIndex++;
-        saveQuizState();
-
+    function displayQuestion() {
         if (currentQuestionIndex < questions.length) {
-            displayQuestion();
+            const currentQuestion = questions[currentQuestionIndex];
+            questionText.textContent = currentQuestion.question;
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach(option => {
+                const optionBtn = document.createElement('button');
+                optionBtn.textContent = option;
+                optionBtn.classList.add('option-btn');
+
+                optionBtn.addEventListener('click', () => {
+                    if (option === currentQuestion.answer) {
+                        score++;
+                        scoreDisplay.textContent = score;
+                    }
+                    currentQuestionIndex++;
+                    displayQuestion();
+                });
+
+                optionsContainer.appendChild(optionBtn);
+            });
         } else {
             endTrivia();
         }
     }
 
-    async function endTrivia() {
-        clearInterval(timer);
-        localStorage.removeItem('quizState');
-        document.getElementById('quiz-section').classList.add('hidden');
-        document.getElementById('result-section').classList.remove('hidden');
-        document.getElementById('final-score').textContent = score;
-        loadLatestFeedback();
+    function endTrivia() {
+        quizSection.classList.add('hidden');
+        resultSection.classList.remove('hidden');
+        finalScoreDisplay.textContent = `${score} / 15`;
     }
 
-    async function submitFeedback(event) {
-        event.preventDefault();
+    // Submit Feedback Functionality
+    submitFeedbackBtn.addEventListener('click', () => {
+        const userName = document.getElementById('user-name').value.trim();
+        const userFeedback = document.getElementById('user-feedback').value.trim();
 
-        const name = document.getElementById('user-name').value.trim();
-        const feedback = document.getElementById('user-feedback').value.trim();
-        if (!name || !feedback) return alert('Please provide your name and feedback.');
-
-        try {
-            await fetch('https://triviabackend-kxd1.onrender.com/api/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, feedback, date: new Date().toLocaleString() })
-            });
-
-            alert('Thank you for your feedback!');
-
-            document.getElementById('user-name').value = '';
-            document.getElementById('user-feedback').value = '';
-        } catch (error) {
-            console.error('Error posting feedback:', error);
-            alert('Failed to submit feedback. Please try again later.');
+        if (!userName || !userFeedback) {
+            alert('Please provide both your name and feedback.');
+            return;
         }
-    }
 
-    loadQuizState();
+        fetch(`${API_BASE_URL}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: userName,
+                feedback: userFeedback,
+                date: new Date().toLocaleString()
+            })
+        })
+        .then(response => response.json())
+        .then(newFeedback => {
+            displayFeedback(newFeedback);
+            alert('Thank you for your feedback!');
+        })
+        .catch(error => console.error('Error posting feedback:', error));
+    });
+
+    function displayFeedback(feedback) {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${feedback.name}: ${feedback.feedback}`;
+        feedbackList.appendChild(listItem);
+    }
 });
