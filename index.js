@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchQuestions() {
         try {
-            const response = await fetch('triviabackend-kxd1.onrender.com/api/questions');
+            const response = await fetch('http://triviabackend-kxd1.onrender.com/api/questions');
             if (!response.ok) throw new Error('Failed to fetch questions.');
             questions = await response.json();
         } catch (error) {
