@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name || !feedback) return alert('Please provide your name and feedback.');
 
         try {
-            await fetch('https://triviabackend-kxd1.onrender.com/api/feedback', {
+            await fetch('http://triviabackend-kxd1.onrender.com/api/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, feedback, date: new Date().toLocaleString() })
