@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'https://triviabackend-kxd1.onrender.com/api/';
+    const API_BASE_URL = 'https://triviabackend-1.onrender.com/api/';
 
     const startBtn = document.getElementById('start-btn');
     const quizSection = document.getElementById('quiz-section');
