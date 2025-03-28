@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
+    const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
 
     if (startBtn) startBtn.addEventListener('click', startTrivia);
     if (restartBtn) restartBtn.addEventListener('click', startTrivia);
+    if (submitFeedbackBtn) submitFeedbackBtn.addEventListener('click', submitFeedback);
 
-    // Keyboard Support for Start/Restart
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             startTrivia();
@@ -28,9 +29,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function fetchFeedback() {
+        try {
+            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/feedback');
+            const feedbackData = await response.json();
+            const feedbackContainer = document.getElementById('feedback-container');
+            feedbackContainer.innerHTML = feedbackData.map(feedback => `
+                <p><strong>${feedback.name}:</strong> ${feedback.comment}</p>
+            `).join('');
+        } catch (error) {
+            console.error('Error fetching feedback:', error);
+        }
+    }
+
     async function startTrivia() {
         await fetchQuestions();
-        if (!questions.length) return; // Prevent starting trivia if no questions were fetched
+        if (!questions.length) return;
 
         score = 0;
         currentQuestionIndex = 0;
@@ -72,11 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
         questionData.options.forEach(option => {
             const button = document.createElement('button');
             button.textContent = option;
-
-            // Mouseover Effect
             button.addEventListener('mouseover', () => button.classList.add('hover-effect'));
             button.addEventListener('mouseout', () => button.classList.remove('hover-effect'));
-
             button.addEventListener('click', () => checkAnswer(option, questionData.answer));
             optionsContainer.appendChild(button);
         });
@@ -114,5 +125,35 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('quiz-section').classList.add('hidden');
         document.getElementById('result-section').classList.remove('hidden');
         document.getElementById('final-score').textContent = score;
+
+        await fetchFeedback();
     }
+
+    async function submitFeedback() {
+        const name = document.getElementById('feedback-name').value;
+        const comment = document.getElementById('feedback-comment').value;
+
+        if (!name || !comment) {
+            alert('Please fill in both name and comment.');
+            return;
+        }
+
+        try {
+            await fetch('https://triviabackend-kxd1.onrender.com/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, comment })
+            });
+
+            document.getElementById('feedback-name').value = '';
+            document.getElementById('feedback-comment').value = '';
+
+            await fetchFeedback();
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+            alert('Failed to submit feedback. Please try again later.');
+        }
+    }
+
+    fetchFeedback();
 });
