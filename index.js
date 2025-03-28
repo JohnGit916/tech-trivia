@@ -148,4 +148,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadQuizState();
+
+    async function loadLatestFeedback() {
+        try {
+            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/feedback');
+            const feedbackData = await response.json();
+            
+            const feedbackContainer = document.getElementById('feedback-container');
+            feedbackContainer.innerHTML = feedbackData.map(entry =>
+                `<p><strong>${entry.name}</strong>: ${entry.feedback} (${entry.date})</p>`
+            ).join('');
+        } catch (error) {
+            console.error('Error fetching feedback:', error);
+        }
+    }
+    
 });
