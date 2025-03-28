@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchQuestions() {
         try {
-            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/questions');
+            const response = await fetch('triviabackend-kxd1.onrender.com/api/questions');
             if (!response.ok) throw new Error('Failed to fetch questions.');
             questions = await response.json();
         } catch (error) {
@@ -93,10 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function checkAnswer(selected, correctAnswer) {
+    async function checkAnswer(selected, correctAnswer) {
         if (selected === correctAnswer) {
             score++;
             document.getElementById('score').textContent = score;
+            await fetch(`http://triviabackend-kxd1.onrender.com/api/score/1`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ score })
+            });
         }
 
         currentQuestionIndex++;
@@ -126,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name || !feedback) return alert('Please provide your name and feedback.');
 
         try {
-            await fetch('https://triviabackend-kxd1.onrender.com/api/feedback', {
+            await fetch('http://https://triviabackend-kxd1.onrender.com/api/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, feedback, date: new Date().toLocaleString() })
