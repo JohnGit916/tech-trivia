@@ -12,6 +12,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
     let timer;
 
+    function saveQuizState() {
+        const quizState = {
+            currentQuestionIndex,
+            score,
+            remainingTime: document.getElementById('timer').textContent,
+            questions
+        };
+        localStorage.setItem('quizState', JSON.stringify(quizState));
+    }
+
+    function loadQuizState() {
+        const savedState = JSON.parse(localStorage.getItem('quizState'));
+        if (savedState) {
+            questions = savedState.questions;
+            currentQuestionIndex = savedState.currentQuestionIndex;
+            score = savedState.score;
+            document.getElementById('score').textContent = score;
+            startTimer(parseInt(savedState.remainingTime));
+            displayQuestion();
+        }
+    }
+
     async function fetchQuestions() {
         try {
             const response = await fetch('https://triviabackend-kxd1.onrender.com/api/questions');
@@ -39,14 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
         displayQuestion();
     }
 
-    function startTimer() {
-        let timeLeft = 60;
+    function startTimer(timeLeft = 60) {
         document.getElementById('timer').textContent = timeLeft;
 
         clearInterval(timer);
         timer = setInterval(() => {
             timeLeft--;
             document.getElementById('timer').textContent = timeLeft;
+            saveQuizState();
 
             if (timeLeft <= 0) {
                 clearInterval(timer);
@@ -78,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         currentQuestionIndex++;
+        saveQuizState();
 
         if (currentQuestionIndex < questions.length) {
             displayQuestion();
@@ -88,13 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function endTrivia() {
         clearInterval(timer);
+        localStorage.removeItem('quizState');
         document.getElementById('quiz-section').classList.add('hidden');
         document.getElementById('result-section').classList.remove('hidden');
         document.getElementById('final-score').textContent = score;
         loadLatestFeedback();
     }
 
-    async function submitFeedback() {
+    async function submitFeedback(event) {
+        event.preventDefault();
+
         const name = document.getElementById('user-name').value.trim();
         const feedback = document.getElementById('user-feedback').value.trim();
         if (!name || !feedback) return alert('Please provide your name and feedback.');
@@ -105,29 +131,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, feedback, date: new Date().toLocaleString() })
             });
+
             alert('Thank you for your feedback!');
-            loadLatestFeedback();
+
+            document.getElementById('user-name').value = '';
+            document.getElementById('user-feedback').value = '';
         } catch (error) {
             console.error('Error posting feedback:', error);
             alert('Failed to submit feedback. Please try again later.');
         }
     }
 
-    async function loadLatestFeedback() {
-        try {
-            const response = await fetch('https://triviabackend-kxd1.onrender.com/api/feedback');
-            const feedbackList = await response.json();
-
-            const feedbackContainer = document.getElementById('feedback-list');
-            feedbackContainer.innerHTML = '';
-
-            feedbackList.slice(-5).forEach(feedback => {
-                const li = document.createElement('li');
-                li.textContent = `${feedback.name}: ${feedback.feedback}`;
-                feedbackContainer.appendChild(li);
-            });
-        } catch (error) {
-            console.error('Error fetching feedback:', error);
-        }
-    }
+    loadQuizState();
 });
