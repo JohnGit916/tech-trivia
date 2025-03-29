@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultSection = document.getElementById('result-section');
     const submitFeedbackBtn = document.getElementById('submit-feedback');
     const feedbackList = document.getElementById('feedback-list');
+    const restartBtn = document.getElementById('restart-btn');
 
     let questions = [];
     let currentQuestionIndex = 0;
@@ -80,7 +81,21 @@ document.addEventListener('DOMContentLoaded', () => {
         quizSection.classList.add('hidden');
         resultSection.classList.remove('hidden');
         finalScoreDisplay.textContent = `${score} / 15`;
+        restartBtn.classList.remove('hidden')
     }
+
+    restartBtn.addEventListener('click', () => {
+        score = 0;
+        currentQuestionIndex = 0;
+        timeLeft = 60;
+        
+        scoreDisplay.textContent = score;
+        quizSection.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+    
+        loadQuestions();
+        startTimer();
+    });
 
     // Submit Feedback Functionality
     submitFeedbackBtn.addEventListener('click', () => {
